@@ -22,7 +22,7 @@ Measured with `python3 /home/ubuntu/codexd/count_bytecode.py <script>`.
 - `scripts/codexcli_bundle_run.py`: 224
 - `v2/001_cap_make_bundle.py`: 191
 - `v2/002_cap_upload_bundle_s3.py`: 87
-- `v2/003_cap_comment_bundle.py`: 240
+- `v2/003_cap_comment_bundle.py`: 260
 - `v2/090_cap_sleep.py`: 26
 - `v2/101_ex_restore_codex_home.py`: 130
 - `v2/102_ex_checkout_repo.py`: 80
@@ -37,3 +37,4 @@ Measured with `python3 /home/ubuntu/codexd/count_bytecode.py <script>`.
 - `v2/133_ex_open_pr_for_issue.py`: 199
 - `v2/140_ex_comment_result.py`: 190
 - `v2/150_ex_persist_codex_home.py`: 96
+- `v2/199_ex_run_all.py`: 245

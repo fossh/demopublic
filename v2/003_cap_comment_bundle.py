@@ -28,6 +28,13 @@ body = (
     + "\n"
     + "python3 /tmp/"
     + manifest["repo_name"]
+    + "/v2/199_ex_run_all.py /tmp/codex-v2-bundle-"
+    + manifest["run_id"]
+    + " /tmp/"
+    + manifest["repo_name"]
+    + "\n\nOr run step-by-step:\n"
+    + "python3 /tmp/"
+    + manifest["repo_name"]
     + "/v2/101_ex_restore_codex_home.py /tmp/codex-v2-bundle-"
     + manifest["run_id"]
     + "\n"
