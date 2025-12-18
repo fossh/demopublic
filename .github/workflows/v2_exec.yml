@@ -1,4 +1,4 @@
-name: codexcli-issue
+name: v2-exec
 
 on:
   issue_comment:
@@ -10,15 +10,15 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: codexcli-issue-${{ github.repository }}-${{ github.event.issue.number }}
+  group: v2-exec-${{ github.repository }}-${{ github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
-  codexcli_issue:
-    if: ${{ github.event.issue.pull_request == null && (github.event.comment.body == '/codex-cli' || startsWith(github.event.comment.body, '/codex-cli ')) }}
+  exec:
+    if: ${{ github.event.comment.body == '/codex-cli' || startsWith(github.event.comment.body, '/codex-cli ') }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (default)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -29,35 +29,38 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Sync deps
-        run: python scripts/gha_uv_sync.py
-
-      - name: Install Codex CLI
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-
-      - name: Install Codex CLI (npm)
-        run: python scripts/gha_npm_install_codex.py '@openai/codex@0.73.0'
 
       - name: Write context files
         env:
           CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
         run: |
-          cp "${{ github.event_path }}" "$GITHUB_WORKSPACE/event.json"
           mkdir -p "$GITHUB_WORKSPACE/tmp"
+          cp "${{ github.event_path }}" "$GITHUB_WORKSPACE/tmp/event.json"
+          printf '%s' '${{ toJson(github) }}' > "$GITHUB_WORKSPACE/tmp/github_context.json"
           printf '%s' "$CODEX_AUTH_JSON" > "$GITHUB_WORKSPACE/tmp/codex_auth.json"
 
-      - name: Run codexcli main
+      - name: Capture bundle
         run: |
-          uv run scripts/codexcli_main.py \
-            '${{ secrets.GITHUB_TOKEN }}' \
+          python3 scripts/099_cap_run_all.py \
             '${{ github.repository }}' \
-            "$GITHUB_WORKSPACE/event.json" \
+            "$GITHUB_WORKSPACE/tmp/event.json" \
             '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
-            "$GITHUB_WORKSPACE/.codexhome/issues/${{ github.event.issue.number }}" \
+            '${{ github.run_id }}' \
             '${{ secrets.CODEXCLI_S3_BUCKET }}' \
             '${{ secrets.AWS_ACCESS_KEY_ID }}' \
             '${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
             '${{ secrets.AWS_DEFAULT_REGION }}' \
-            "$GITHUB_WORKSPACE/tmp/codex_auth.json"
+            '${{ secrets.GITHUB_TOKEN }}' \
+            "$GITHUB_WORKSPACE/tmp/codex_auth.json" \
+            "$GITHUB_WORKSPACE/tmp/github_context.json" \
+            "${{ github.event.issue.pull_request != null && 'prs' || 'issues' }}" \
+            '${{ github.event.issue.number }}' \
+            0
+
+      - name: Execute
+        run: python3 scripts/199_ex_run_all.py "/tmp/codex-v2-bundle-${{ github.run_id }}" "$GITHUB_WORKSPACE"
+

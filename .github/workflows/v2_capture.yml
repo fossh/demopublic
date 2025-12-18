@@ -1,4 +1,4 @@
-name: v2-codex-capture
+name: v2-capture
 
 on:
   issue_comment:
@@ -9,16 +9,16 @@ permissions:
   issues: write
 
 concurrency:
-  group: v2-codex-capture-${{ github.repository }}-${{ github.run_id }}
+  group: v2-capture-${{ github.repository }}-${{ github.run_id }}
   cancel-in-progress: false
 
 jobs:
   capture:
-    if: ${{ github.event.comment.body == '/codex-capture-v2' || startsWith(github.event.comment.body, '/codex-capture-v2 ') }}
+    if: ${{ github.event.comment.body == '/codex-capture' || startsWith(github.event.comment.body, '/codex-capture ') }}
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
-      - name: Checkout (default)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -37,9 +37,9 @@ jobs:
           printf '%s' '${{ toJson(github) }}' > "$GITHUB_WORKSPACE/tmp/github_context.json"
           printf '%s' "$CODEX_AUTH_JSON" > "$GITHUB_WORKSPACE/tmp/codex_auth.json"
 
-      - name: Capture bundle to S3
+      - name: Capture bundle and sleep
         run: |
-          python3 v2/001_cap_make_bundle.py \
+          python3 scripts/099_cap_run_all.py \
             '${{ github.repository }}' \
             "$GITHUB_WORKSPACE/tmp/event.json" \
             '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
@@ -52,7 +52,5 @@ jobs:
             "$GITHUB_WORKSPACE/tmp/codex_auth.json" \
             "$GITHUB_WORKSPACE/tmp/github_context.json" \
             "${{ github.event.issue.pull_request != null && 'prs' || 'issues' }}" \
-            '${{ github.event.issue.number }}'
-          python3 v2/002_cap_upload_bundle_s3.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
-          python3 v2/003_cap_comment_bundle.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
-          python3 v2/090_cap_sleep.py 36000
+            '${{ github.event.issue.number }}' \
+            21600

@@ -1,15 +1,13 @@
 """
 MUST HAVE REQUIREMENTS
+- Script id: 104
 - Standalone script (no local imports).
-- Install the requested Codex CLI npm package globally.
+- Install Codex CLI via npm (global).
 - Must not read environment variables; use argv only.
+- Argument: npm package spec.
 """
 
 from subprocess import run
 from sys import argv
 
-# ----------------------------------
-# Install Codex CLI
-# ----------------------------------
 run(["npm", "i", "-g", argv[1]], check=False)
-
