@@ -1,0 +1,55 @@
+name: codexcli-capture
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: codexcli-capture-${{ github.repository }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    if: ${{ github.event.comment.body == '/codex-cli-capture' || startsWith(github.event.comment.body, '/codex-cli-capture ') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout (default)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Write bundle files
+        env:
+          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tmp"
+          cp "${{ github.event_path }}" "$GITHUB_WORKSPACE/tmp/event.json"
+          printf '%s' '${{ toJson(github) }}' > "$GITHUB_WORKSPACE/tmp/github_context.json"
+          printf '%s' "$CODEX_AUTH_JSON" > "$GITHUB_WORKSPACE/tmp/codex_auth.json"
+
+      - name: Capture bundle to S3 and wait
+        run: |
+          python scripts/codexcli_capture_bundle.py \
+            '${{ github.repository }}' \
+            "$GITHUB_WORKSPACE/tmp/event.json" \
+            '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
+            '${{ github.run_id }}' \
+            '${{ secrets.CODEXCLI_S3_BUCKET }}' \
+            '${{ secrets.AWS_ACCESS_KEY_ID }}' \
+            '${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
+            '${{ secrets.AWS_DEFAULT_REGION }}' \
+            '${{ secrets.GITHUB_TOKEN }}' \
+            "$GITHUB_WORKSPACE/tmp/codex_auth.json" \
+            "$GITHUB_WORKSPACE/tmp/github_context.json" \
+            "${{ github.event.issue.pull_request != null && 'prs' || 'issues' }}" \
+            '${{ github.event.issue.number }}'

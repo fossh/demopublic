@@ -1,7 +1,7 @@
 """
 MUST HAVE REQUIREMENTS
 - Standalone script (no local imports).
-- Trigger only on issue_comment events with `/codexcli`.
+- Trigger only on issue_comment events with `/codex-cli*` workflows.
 - Respond back by posting a GitHub comment.
 - For PR comments: run Codex CLI, optionally push commits back.
 - For issue comments: run Codex CLI, optionally open a PR with changes.
@@ -10,12 +10,11 @@ MUST HAVE REQUIREMENTS
 - Work without GitHub runner (argv-only inputs).
 """
 
-from glob import glob
 from json import load
 from os import environ, makedirs
-from os.path import basename, exists, getmtime
+from os.path import dirname
 from subprocess import run
-from sys import argv
+from sys import argv, executable
 
 import requests
 
@@ -32,7 +31,8 @@ aws_access_key_id = argv[7]
 aws_secret_access_key = argv[8]
 aws_region = argv[9]
 codex_auth_json_path = argv[10]
-h = {"Authorization": "token " + token}
+d = dirname(argv[0]) or "."
+h = {"Authorization": "Bearer " + token}
 api = "https://api.github.com/repos/" + repo
 
 # ----------------------------------
@@ -53,14 +53,9 @@ event = load(open(event_path, "rb"))
 issue = event["issue"]
 issue_number = issue["number"]
 
-# ----------------------------------
-# Only react to `/codexcli ...`
-# ----------------------------------
-text = event["comment"]["body"]
-if not text.startswith("/codexcli"):
-    raise SystemExit
-
-request_text = text[9:] or "Help with this repository."
+b = event["comment"]["body"]
+i = b.find(" ")
+request_text = (b[i + 1 :] if i > 0 else "") or "Help with this repository."
 
 # ----------------------------------
 # Restore CODEX_HOME from S3 (optional)
@@ -77,41 +72,16 @@ if s3_bucket:
 # ----------------------------------
 # Fail fast if more than one session id exists
 # ----------------------------------
-fs = glob(codex_home + "/sessions/**/*.jsonl", recursive=True)
-if fs and len({basename(f)[-41:-5] for f in fs}) > 1:
+if run([executable, d + "/codex_assert_single_session.py", codex_home]).returncode:
     raise SystemExit(3)
 
 # ----------------------------------
 # Ensure a session id exists (bootstrap if needed)
 # ----------------------------------
-sid_path = codex_home + "/session_id"
-session_id = ""
-if exists(sid_path):
-    session_id = open(sid_path, "r", encoding="utf-8").read().strip()
-if not session_id and fs:
-    s = basename(max(fs, key=getmtime))
-    session_id = s[: s.rfind(".")][-36:]
-if not session_id:
-    run(
-        [
-            "codex",
-            "exec",
-            "-m",
-            "gpt-5.2",
-            "--config",
-            "model_reasoning_effort=high",
-            "--dangerously-bypass-approvals-and-sandbox",
-            "--skip-git-repo-check",
-            "-",
-        ],
-        input="say hi",
-        text=True,
-    )
-    fs = glob(codex_home + "/sessions/**/*.jsonl", recursive=True)
-    if fs:
-        s = basename(max(fs, key=getmtime))
-        session_id = s[: s.rfind(".")][-36:]
-open(sid_path, "w", encoding="utf-8").write(session_id)
+session_id = (
+    run([executable, d + "/codex_ensure_session_id.py", codex_home], stdout=-1, text=True)
+    .stdout.strip()
+)
 
 # ----------------------------------
 # Run Codex CLI for the user request
