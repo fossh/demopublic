@@ -55,8 +55,7 @@ cmd = [
     "--dangerously-bypass-approvals-and-sandbox",
     "--skip-git-repo-check",
 ]
-if session_id:
-    cmd += ["resume", session_id]
+cmd += ["resume", session_id]
 cmd += ["-"]
 cp = run(cmd, input=request_text, text=True, capture_output=True)
 msg = cp.stdout or cp.stderr or "codexcli ran."
@@ -104,7 +103,7 @@ requests.post(
     headers=h,
     json={
         "body": (
-            "session: " + (session_id or "new") + "\n\n"
+            "session: " + session_id + "\n\n"
             + (("PR: " + pr_link + "\n\n") if pr_link else "")
             + msg[:60000]
             + "\n\nRun: "
