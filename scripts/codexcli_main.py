@@ -77,16 +77,20 @@ if changed:
     else:
         branch = "codexcli/issue-%s-%s" % (issue_number, event["comment"]["id"])
         run(["git", "push", "origin", f"HEAD:refs/heads/{branch}"])
-        pr_link = requests.post(
-            api + "/pulls",
-            headers=h,
-            json={
-                "title": f"codexcli: issue {issue_number}",
-                "head": branch,
-                "base": event["repository"]["default_branch"],
-                "body": msg[:60000],
-            },
-        ).json().get("html_url", "")
+        pr_link = "https://github.com/" + repo + "/pull/new/" + branch
+        pr_link = (
+            requests.post(
+                api + "/pulls",
+                headers=h,
+                json={
+                    "title": f"codexcli: issue {issue_number}",
+                    "head": branch,
+                    "base": event["repository"]["default_branch"],
+                    "body": msg[:60000],
+                },
+            ).json().get("html_url")
+            or pr_link
+        )
 
 requests.post(
     api + "/issues/%s/comments" % issue_number,
