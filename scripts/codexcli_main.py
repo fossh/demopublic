@@ -43,13 +43,16 @@ request_text = text[9:] or "Help with this repository."
 # ----------------------------------
 # Run Codex CLI for the user request
 # ----------------------------------
-last = ".codexcli_last_message.txt"
+last = "/tmp/codexcli_last_message.txt"
 run(
-    ["codex", "-a", "never", "-s", "workspace-write", "exec", "-C", ".", "--color", "never", "-o", last, "-"],
+    ["codex", "-a", "never", "exec", "-s", "workspace-write", "-C", ".", "--color", "never", "-o", last, "-"],
     input=request_text,
     text=True,
 )
-msg = open(last, "r", encoding="utf-8").read()
+try:
+    msg = open(last, "r", encoding="utf-8").read()
+except FileNotFoundError:
+    msg = "codexcli ran."
 
 # ----------------------------------
 # If Codex changed files, commit + push (PR) or open PR (issue)
@@ -83,7 +86,7 @@ if changed:
                 "base": event["repository"]["default_branch"],
                 "body": msg[:60000],
             },
-        ).json()["html_url"]
+        ).json().get("html_url", "")
 
 requests.post(
     api + "/issues/%s/comments" % issue_number,
