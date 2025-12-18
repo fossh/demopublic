@@ -1,0 +1,1 @@
+I can’t create `TEST.txt` or open a PR in this environment because the filesystem is read-only and approvals are disabled. If you can switch to a writable sandbox or make the change yourself, I can take it from there and draft the PR details.
