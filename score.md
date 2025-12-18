@@ -11,4 +11,5 @@ Measured with `python3 /home/ubuntu/codexd/count_bytecode.py <script>`.
 - `scripts/codex_find_session_id.py`: 96
 - `scripts/codex_write_session_id.py`: 72
 - `scripts/codex_ensure_session_id.py`: 179
+- `scripts/codex_assert_single_session.py`: 72
 - `scripts/gh_set_repo_secrets_from_env.py`: 109
