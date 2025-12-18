@@ -1,5 +1,6 @@
 """
 MUST HAVE REQUIREMENTS
+- Script id: 133
 - Standalone script (no local imports).
 - Open a PR from `bundle/branch`; write url to `bundle/pr_url`.
 - Must not read environment variables; use argv only.
@@ -37,4 +38,3 @@ try:
     open(b + "/pr_url", "w", encoding="utf-8").write(r.get("html_url", ""))
 except Exception:
     open(b + "/pr_url", "w", encoding="utf-8").write("https://github.com/%s/pull/new/%s" % (m["repo"], branch))
-

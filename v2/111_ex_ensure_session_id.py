@@ -1,5 +1,6 @@
 """
 MUST HAVE REQUIREMENTS
+- Script id: 111
 - Standalone script (no local imports).
 - Ensure CODEX_HOME has a session id (bootstrap by running Codex once).
 - Print session id.

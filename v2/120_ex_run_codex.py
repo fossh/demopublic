@@ -1,5 +1,6 @@
 """
 MUST HAVE REQUIREMENTS
+- Script id: 120
 - Standalone script (no local imports).
 - Run Codex with `resume <session_id>` using bundle event comment text.
 - Write output to `bundle/codex_output.txt`.

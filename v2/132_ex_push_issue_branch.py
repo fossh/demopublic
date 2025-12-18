@@ -1,5 +1,6 @@
 """
 MUST HAVE REQUIREMENTS
+- Script id: 132
 - Standalone script (no local imports).
 - Push a branch for issue changes; write branch name to `bundle/branch`.
 - Must not read environment variables; use argv only.
@@ -21,4 +22,3 @@ n = str(m["number"])
 branch = "codex-v2/issue-%s-%s" % (n, e["comment"]["id"])
 run(["git", "push", "origin", "HEAD:refs/heads/%s" % branch], cwd=work, check=False)
 open(b + "/branch", "w", encoding="utf-8").write(branch)
-

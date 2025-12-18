@@ -1,5 +1,6 @@
 """
 MUST HAVE REQUIREMENTS
+- Script id: 003
 - Standalone script (no local imports).
 - Comment on the issue/PR with v2 bundle S3 location and replay steps.
 - Must not read environment variables; use argv only.
@@ -27,34 +28,34 @@ body = (
     + "\n"
     + "python3 /tmp/"
     + m["repo_name"]
-    + "/v2/ex_restore_codex_home.py /tmp/codex-v2-bundle-"
+    + "/v2/101_ex_restore_codex_home.py /tmp/codex-v2-bundle-"
     + m["run_id"]
     + "\n"
     + "python3 /tmp/"
     + m["repo_name"]
-    + "/v2/ex_checkout_repo.py /tmp/codex-v2-bundle-"
+    + "/v2/102_ex_checkout_repo.py /tmp/codex-v2-bundle-"
     + m["run_id"]
     + " /tmp/"
     + m["repo_name"]
     + "\n"
     + "python3 /tmp/"
     + m["repo_name"]
-    + "/v2/ex_install_codex_cli.py @openai/codex@0.73.0\n"
+    + "/v2/104_ex_install_codex_cli.py @openai/codex@0.73.0\n"
     + "python3 /tmp/"
     + m["repo_name"]
-    + "/v2/ex_ensure_session_id.py /tmp/codex-v2-bundle-"
+    + "/v2/111_ex_ensure_session_id.py /tmp/codex-v2-bundle-"
     + m["run_id"]
     + "/codex_home\n"
     + "python3 /tmp/"
     + m["repo_name"]
-    + "/v2/ex_run_codex.py /tmp/codex-v2-bundle-"
+    + "/v2/120_ex_run_codex.py /tmp/codex-v2-bundle-"
     + m["run_id"]
     + " /tmp/"
     + m["repo_name"]
     + "\n"
     + "python3 /tmp/"
     + m["repo_name"]
-    + "/v2/ex_comment_result.py /tmp/codex-v2-bundle-"
+    + "/v2/140_ex_comment_result.py /tmp/codex-v2-bundle-"
     + m["run_id"]
     + "\n\nMore: /tmp/"
     + m["repo_name"]

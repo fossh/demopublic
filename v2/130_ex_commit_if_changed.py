@@ -1,5 +1,6 @@
 """
 MUST HAVE REQUIREMENTS
+- Script id: 130
 - Standalone script (no local imports).
 - If there are git changes, commit them.
 - If a commit happened, write `bundle/changed`.

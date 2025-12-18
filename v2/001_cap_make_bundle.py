@@ -1,5 +1,6 @@
 """
 MUST HAVE REQUIREMENTS
+- Script id: 001
 - Standalone script (no local imports).
 - Create a v2 bundle dir in /tmp and write `manifest.json`.
 - Copy event/context/auth files into the bundle.
