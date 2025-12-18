@@ -45,7 +45,7 @@ jobs:
 
       - name: Capture bundle
         run: |
-          python3 scripts/099_cap_run_all.py \
+          python3 scripts/001_cap_make_bundle.py \
             '${{ github.repository }}' \
             "$GITHUB_WORKSPACE/tmp/event.json" \
             '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
@@ -58,9 +58,9 @@ jobs:
             "$GITHUB_WORKSPACE/tmp/codex_auth.json" \
             "$GITHUB_WORKSPACE/tmp/github_context.json" \
             "${{ github.event.issue.pull_request != null && 'prs' || 'issues' }}" \
-            '${{ github.event.issue.number }}' \
-            0
+            '${{ github.event.issue.number }}'
+          python3 scripts/002_cap_upload_bundle_s3.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
+          python3 scripts/003_cap_comment_bundle.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
 
       - name: Execute
         run: python3 scripts/199_ex_run_all.py "/tmp/codex-v2-bundle-${{ github.run_id }}" "$GITHUB_WORKSPACE"
-
