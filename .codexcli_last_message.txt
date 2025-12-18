@@ -1,0 +1,5 @@
+I can’t edit files here because the sandbox is read-only and approvals are disabled. Please add this line to `README.md`:
+
+`codexcli applied this change`
+
+If you want me to handle the edit, please rerun with write access enabled.
