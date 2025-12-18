@@ -25,12 +25,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v5
+        uses: actions/setup-python@v5
         with:
-          enable-cache: true
+          python-version: "3.13"
 
       - name: Sync deps
-        run: uv sync --frozen
+        run: |
+          python -m pip install -U pip uv
+          uv sync --frozen
 
       - name: Install Codex CLI
         uses: actions/setup-node@v4
