@@ -20,3 +20,5 @@ Measured with `python3 /home/ubuntu/codexd/count_bytecode.py <script>`.
 - `scripts/gha_uv_sync.py`: 39
 - `scripts/codexcli_bundle_pull.py`: 107
 - `scripts/codexcli_bundle_run.py`: 224
+- `v2/capture.py`: 364
+- `v2/execute.py`: 298

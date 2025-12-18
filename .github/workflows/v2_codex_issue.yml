@@ -1,0 +1,70 @@
+name: v2-codex-issue
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: v2-codex-issue-${{ github.repository }}-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  exec_issue:
+    if: ${{ github.event.issue.pull_request == null && (github.event.comment.body == '/codex-cli-v2' || startsWith(github.event.comment.body, '/codex-cli-v2 ')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (default)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Codex CLI (node)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Write context files
+        env:
+          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tmp"
+          cp "${{ github.event_path }}" "$GITHUB_WORKSPACE/tmp/event.json"
+          printf '%s' '${{ toJson(github) }}' > "$GITHUB_WORKSPACE/tmp/github_context.json"
+          printf '%s' "$CODEX_AUTH_JSON" > "$GITHUB_WORKSPACE/tmp/codex_auth.json"
+
+      - name: Capture (no sleep)
+        run: |
+          python3 v2/capture.py \
+            '${{ github.repository }}' \
+            "$GITHUB_WORKSPACE/tmp/event.json" \
+            '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
+            '${{ github.run_id }}' \
+            '${{ secrets.CODEXCLI_S3_BUCKET }}' \
+            '${{ secrets.AWS_ACCESS_KEY_ID }}' \
+            '${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
+            '${{ secrets.AWS_DEFAULT_REGION }}' \
+            '${{ secrets.GITHUB_TOKEN }}' \
+            "$GITHUB_WORKSPACE/tmp/codex_auth.json" \
+            "$GITHUB_WORKSPACE/tmp/github_context.json" \
+            issues \
+            '${{ github.event.issue.number }}' \
+            0
+
+      - name: Execute
+        run: |
+          python3 v2/execute.py \
+            "/tmp/codex-v2-bundle-${{ github.run_id }}" \
+            "$GITHUB_WORKSPACE" \
+            '@openai/codex@0.73.0'
+
