@@ -17,6 +17,12 @@ jobs:
   codexcli:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout (default)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Checkout (PR head)
         if: ${{ github.event.issue.pull_request != null }}
         uses: actions/checkout@v4
@@ -24,13 +30,7 @@ jobs:
           ref: refs/pull/${{ github.event.issue.number }}/head
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checkout (default)
-        if: ${{ github.event.issue.pull_request == null }}
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          path: pr
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
@@ -55,10 +55,21 @@ jobs:
           mkdir -p ~/.codex
           printf '%s' "$CODEX_AUTH_JSON" > ~/.codex/auth.json
 
-      - name: Run codexcli main
+      - name: Run codexcli main (issue)
+        if: ${{ github.event.issue.pull_request == null }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           EVENT_PATH: ${{ github.event_path }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: uv run scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL"
+
+      - name: Run codexcli main (pr)
+        if: ${{ github.event.issue.pull_request != null }}
+        working-directory: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          EVENT_PATH: ${{ github.event_path }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: uv run ../scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL"

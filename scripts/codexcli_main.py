@@ -45,7 +45,7 @@ request_text = text[9:] or "Help with this repository."
 # ----------------------------------
 last = "/tmp/codexcli_last_message.txt"
 run(
-    ["codex", "-a", "never", "exec", "-s", "workspace-write", "-C", ".", "--color", "never", "-o", last, "-"],
+    ["codex", "-a", "never", "exec", "-s", "workspace-write", "--color", "never", "-o", last, "-"],
     input=request_text,
     text=True,
 )
