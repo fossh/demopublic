@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   capture:
-    if: ${{ github.event.comment.body == '/codex-capture' || startsWith(github.event.comment.body, '/codex-capture ') }}
+    if: ${{ github.event.comment.body == '/codex-cli-capture' || startsWith(github.event.comment.body, '/codex-cli-capture ') }}
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
