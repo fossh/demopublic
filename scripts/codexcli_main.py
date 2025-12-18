@@ -45,11 +45,18 @@ request_text = text[9:] or "Help with this repository."
 # ----------------------------------
 # Run Codex CLI for the user request
 # ----------------------------------
-cmd = ["codex", "-a", "never", "-s", "workspace-write", "exec"]
+cmd = [
+    "codex",
+    "exec",
+    "-m",
+    "gpt-5.2",
+    "--config",
+    "model_reasoning_effort=high",
+    "--dangerously-bypass-approvals-and-sandbox",
+    "--skip-git-repo-check",
+]
 if session_id:
-    cmd = ["codex", "-a", "never", "exec", "resume", "-c", 'sandbox_mode="workspace-write"', session_id]
-else:
-    cmd = ["codex", "-a", "never", "exec", "-s", "workspace-write"]
+    cmd += ["resume", session_id]
 cmd += ["-"]
 cp = run(cmd, input=request_text, text=True, capture_output=True)
 msg = cp.stdout or cp.stderr or "codexcli ran."
