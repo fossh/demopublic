@@ -9,7 +9,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: v2-codex-capture-${{ github.repository }}-${{ github.event.issue.number }}
+  group: v2-codex-capture-${{ github.repository }}-${{ github.run_id }}
   cancel-in-progress: false
 
 jobs:
