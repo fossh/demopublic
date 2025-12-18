@@ -5,8 +5,8 @@ MUST HAVE REQUIREMENTS
 - Must not read environment variables; use argv only.
 """
 
-from os import listdir
-from os.path import exists, getmtime, isdir
+from os.path import basename, exists, getmtime
+from glob import glob
 from sys import argv
 
 # ----------------------------------
@@ -20,14 +20,9 @@ if exists(p):
         raise SystemExit
 
 # ----------------------------------
-# Fallback: newest sessions/<id> directory
+# Fallback: newest sessions/**/*.jsonl file => last 36 chars
 # ----------------------------------
-d = argv[1] + "/sessions"
-try:
-    ds = listdir(d)
-except FileNotFoundError:
-    raise SystemExit
-ds = [x for x in ds if isdir(d + "/" + x)]
-if ds:
-    print(max(ds, key=lambda x: getmtime(d + "/" + x)))
-
+fs = glob(argv[1] + "/sessions/**/*.jsonl", recursive=True)
+if fs:
+    s = basename(max(fs, key=getmtime))
+    print(s[: s.rfind(".")][-36:])

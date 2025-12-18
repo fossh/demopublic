@@ -8,6 +8,6 @@ Measured with `python3 /home/ubuntu/codexd/count_bytecode.py <script>`.
 - `scripts/gh_create_issue.py`: 75
 - `scripts/gh_get_issue.py`: 61
 - `scripts/gh_list_issue_comments.py`: 75
-- `scripts/codex_find_session_id.py`: 134
-- `scripts/codex_write_session_id.py`: 110
+- `scripts/codex_find_session_id.py`: 96
+- `scripts/codex_write_session_id.py`: 72
 - `scripts/gh_set_repo_secrets_from_env.py`: 109

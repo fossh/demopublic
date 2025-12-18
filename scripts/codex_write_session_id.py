@@ -5,20 +5,15 @@ MUST HAVE REQUIREMENTS
 - Must not read environment variables; use argv only.
 """
 
-from os import listdir
-from os.path import getmtime, isdir
+from glob import glob
+from os.path import basename, getmtime
 from sys import argv
 
 # ----------------------------------
-# Find newest session directory
+# Find newest session file and persist id
 # ----------------------------------
 h = argv[1]
-d = h + "/sessions"
-try:
-    ds = listdir(d)
-except FileNotFoundError:
-    raise SystemExit
-ds = [x for x in ds if isdir(d + "/" + x)]
-if ds:
-    open(h + "/session_id", "w", encoding="utf-8").write(max(ds, key=lambda x: getmtime(d + "/" + x)))
-
+fs = glob(h + "/sessions/**/*.jsonl", recursive=True)
+if fs:
+    s = basename(max(fs, key=getmtime))
+    open(h + "/session_id", "w", encoding="utf-8").write(s[: s.rfind(".")][-36:])
