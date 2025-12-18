@@ -88,7 +88,9 @@ run(["aws", "s3", "sync", bundle, s3], check=False)
 body = (
     "Bundle uploaded:\n"
     + s3
-    + "\n\nReplay:\n"
+    + "\n\nReplay (safe): edit `/tmp/codexcli-bundle-"
+    + run_id
+    + "/event.json` comment body to start with `/codex-cli `, then run:\n"
     + "1) aws s3 sync "
     + s3
     + " /tmp/codexcli-bundle-"
