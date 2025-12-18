@@ -8,7 +8,7 @@ MUST HAVE REQUIREMENTS
 
 from json import dump
 from os import makedirs
-from shutil import copyfile, rmtree
+from shutil import copyfile
 from sys import argv
 
 # ----------------------------------
@@ -33,7 +33,6 @@ number = argv[13]
 # ----------------------------------
 repo_name = repo.rsplit("/", 1)[1]
 bundle = "/tmp/codex-v2-bundle-" + run_id
-rmtree(bundle, ignore_errors=True)
 makedirs(bundle, exist_ok=True)
 copyfile(event_path, bundle + "/event.json")
 copyfile(codex_auth_json_path, bundle + "/codex_auth.json")
@@ -63,4 +62,3 @@ dump(
 )
 
 print(bundle)
-
