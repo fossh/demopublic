@@ -1,0 +1,10 @@
+*.pyc
+*.swp
+*.swo
+__pycache__/
+venv/
+.env
+tmp/
+trash/
+.venv/
+db.sqlite3
