@@ -22,8 +22,7 @@ token = argv[1]
 repo = argv[2]
 event_path = argv[3]
 run_url = argv[4]
-codex_home = argv[5]
-session_id = argv[6].strip()
+session_id = argv[5].strip()
 h = {"Authorization": "token " + token}
 api = "https://api.github.com/repos/" + repo
 

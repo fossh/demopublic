@@ -77,7 +77,7 @@ jobs:
           REPO: ${{ github.repository }}
           EVENT_PATH: ${{ github.event_path }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: uv run scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL" "$CODEX_HOME" "$CODEX_SESSION_ID"
+        run: uv run scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL" "$CODEX_SESSION_ID"
 
       - name: Update session id (issue)
         if: ${{ github.event.issue.pull_request == null }}
@@ -117,7 +117,7 @@ jobs:
           REPO: ${{ github.repository }}
           EVENT_PATH: ${{ github.event_path }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: uv run --project .. ../scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL" "$CODEX_HOME" "$CODEX_SESSION_ID"
+        run: uv run --project .. ../scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL" "$CODEX_SESSION_ID"
 
       - name: Update session id (pr)
         if: ${{ github.event.issue.pull_request != null }}
