@@ -48,7 +48,9 @@ request_text = text[9:] or "Help with this repository."
 # ----------------------------------
 cmd = ["codex", "-a", "never", "-s", "workspace-write", "exec"]
 if session_id:
-    cmd += ["resume", session_id]
+    cmd = ["codex", "-a", "never", "exec", "resume", "-c", 'sandbox_mode="workspace-write"', session_id]
+else:
+    cmd = ["codex", "-a", "never", "exec", "-s", "workspace-write"]
 cmd += ["-"]
 cp = run(cmd, input=request_text, text=True, capture_output=True)
 msg = cp.stdout or cp.stderr or "codexcli ran."
