@@ -1,0 +1,64 @@
+name: codexcli
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: codexcli-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  codexcli:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (PR head)
+        if: ${{ github.event.issue.pull_request != null }}
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout (default)
+        if: ${{ github.event.issue.pull_request == null }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync deps
+        run: uv sync --frozen
+
+      - name: Install Codex CLI
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Codex CLI (npm)
+        run: npm i -g @openai/codex@0.73.0
+
+      - name: Write Codex auth
+        env:
+          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+        run: |
+          mkdir -p ~/.codex
+          printf '%s' "$CODEX_AUTH_JSON" > ~/.codex/auth.json
+
+      - name: Run codexcli main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          EVENT_PATH: ${{ github.event_path }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: uv run scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL"
