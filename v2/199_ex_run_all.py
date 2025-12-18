@@ -6,37 +6,34 @@ MUST HAVE REQUIREMENTS
 - Must not read environment variables; use argv only.
 """
 
-from json import load
 from subprocess import run
 from sys import argv
 
 bundle_dir = argv[1]
 repo_dir = argv[2]
-codex_pkg = argv[3] if len(argv) > 3 else "@openai/codex@0.73.0"
 
-manifest = load(open(bundle_dir + "/manifest.json", "rb"))
-script_dir = repo_dir + "/v2"
+# ----------------------------------
+# Detect PR vs issue without JSON parsing
+# (matches `json.dump` output from v2/001_cap_make_bundle.py)
+# ----------------------------------
+is_pr = b'"kind": "prs"' in open(bundle_dir + "/manifest.json", "rb").read()
 
-run(["python3", script_dir + "/101_ex_restore_codex_home.py", bundle_dir], cwd=repo_dir, check=False)
-run(["python3", script_dir + "/102_ex_checkout_repo.py", bundle_dir, repo_dir], check=False)
+script_dir = repo_dir + "/v2/"
+work_dir = repo_dir + ("/pr" if is_pr else "")
 
-work_dir = repo_dir
-if manifest["kind"] == "prs":
-    run(["python3", script_dir + "/103_ex_checkout_pr_worktree.py", bundle_dir, repo_dir], check=False)
-    work_dir = repo_dir + "/pr"
-
-run(["python3", script_dir + "/104_ex_install_codex_cli.py", codex_pkg], check=False)
-run(["python3", script_dir + "/110_ex_assert_single_session.py", bundle_dir + "/codex_home"], check=False)
-run(["python3", script_dir + "/111_ex_ensure_session_id.py", bundle_dir + "/codex_home"], check=False)
-run(["python3", script_dir + "/120_ex_run_codex.py", bundle_dir, work_dir], check=False)
-run(["python3", script_dir + "/130_ex_commit_if_changed.py", bundle_dir, work_dir, "codex-v2"], check=False)
-
-if manifest["kind"] == "prs":
-    run(["python3", script_dir + "/131_ex_push_pr_head.py", bundle_dir, work_dir], check=False)
+run(["python3", script_dir + "101_ex_restore_codex_home.py", bundle_dir], check=False)
+run(["python3", script_dir + "102_ex_checkout_repo.py", bundle_dir, repo_dir], check=False)
+if is_pr:
+    run(["python3", script_dir + "103_ex_checkout_pr_worktree.py", bundle_dir, repo_dir], check=False)
+run(["python3", script_dir + "104_ex_install_codex_cli.py", "@openai/codex@0.73.0"], check=False)
+run(["python3", script_dir + "110_ex_assert_single_session.py", bundle_dir + "/codex_home"], check=False)
+run(["python3", script_dir + "111_ex_ensure_session_id.py", bundle_dir + "/codex_home"], check=False)
+run(["python3", script_dir + "120_ex_run_codex.py", bundle_dir, work_dir], check=False)
+run(["python3", script_dir + "130_ex_commit_if_changed.py", bundle_dir, work_dir, "codex-v2"], check=False)
+if is_pr:
+    run(["python3", script_dir + "131_ex_push_pr_head.py", bundle_dir, work_dir], check=False)
 else:
-    run(["python3", script_dir + "/132_ex_push_issue_branch.py", bundle_dir, work_dir], check=False)
-    run(["python3", script_dir + "/133_ex_open_pr_for_issue.py", bundle_dir], check=False)
-
-run(["python3", script_dir + "/140_ex_comment_result.py", bundle_dir], check=False)
-run(["python3", script_dir + "/150_ex_persist_codex_home.py", bundle_dir], check=False)
-
+    run(["python3", script_dir + "132_ex_push_issue_branch.py", bundle_dir, work_dir], check=False)
+    run(["python3", script_dir + "133_ex_open_pr_for_issue.py", bundle_dir], check=False)
+run(["python3", script_dir + "140_ex_comment_result.py", bundle_dir], check=False)
+run(["python3", script_dir + "150_ex_persist_codex_home.py", bundle_dir], check=False)
