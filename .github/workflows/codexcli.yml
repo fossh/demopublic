@@ -10,12 +10,18 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: codexcli-${{ github.event.issue.number || github.run_id }}
+  group: codexcli-${{ github.repository }}-${{ github.event.issue.number }}
   cancel-in-progress: false
 
 jobs:
   codexcli:
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      CODEXCLI_S3_BUCKET: ${{ secrets.CODEXCLI_S3_BUCKET }}
+      CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
     steps:
       - name: Checkout (default)
         uses: actions/checkout@v4
@@ -48,28 +54,81 @@ jobs:
       - name: Install Codex CLI (npm)
         run: npm i -g @openai/codex@0.73.0
 
-      - name: Write Codex auth
-        env:
-          CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+      - name: Restore CODEX_HOME (issue)
+        if: ${{ github.event.issue.pull_request == null }}
         run: |
-          mkdir -p ~/.codex
-          printf '%s' "$CODEX_AUTH_JSON" > ~/.codex/auth.json
+          export CODEX_HOME="$PWD/.codexhome"
+          mkdir -p "$CODEX_HOME"
+          test -n "$CODEXCLI_S3_BUCKET" && aws s3 sync "s3://$CODEXCLI_S3_BUCKET/${{ github.repository }}/issues/${{ github.event.issue.number }}/" "$CODEX_HOME" --exclude auth.json || :
+          printf '%s' "$CODEX_AUTH_JSON" > "$CODEX_HOME/auth.json"
+
+      - name: Find session id (issue)
+        if: ${{ github.event.issue.pull_request == null }}
+        run: |
+          export CODEX_HOME="$PWD/.codexhome"
+          CODEX_SESSION_ID="$(uv run scripts/codex_find_session_id.py "$CODEX_HOME")"
+          echo "CODEX_SESSION_ID=$CODEX_SESSION_ID" >> "$GITHUB_ENV"
 
       - name: Run codexcli main (issue)
         if: ${{ github.event.issue.pull_request == null }}
         env:
+          CODEX_HOME: ${{ github.workspace }}/.codexhome
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           EVENT_PATH: ${{ github.event_path }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: uv run scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL"
+        run: uv run scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL" "$CODEX_HOME" "$CODEX_SESSION_ID"
+
+      - name: Update session id (issue)
+        if: ${{ github.event.issue.pull_request == null }}
+        run: |
+          export CODEX_HOME="$PWD/.codexhome"
+          uv run scripts/codex_write_session_id.py "$CODEX_HOME"
+
+      - name: Save CODEX_HOME (issue)
+        if: ${{ github.event.issue.pull_request == null }}
+        run: |
+          export CODEX_HOME="$PWD/.codexhome"
+          test -n "$CODEXCLI_S3_BUCKET" && aws s3 sync "$CODEX_HOME" "s3://$CODEXCLI_S3_BUCKET/${{ github.repository }}/issues/${{ github.event.issue.number }}/" --exclude auth.json || :
+
+      - name: Restore CODEX_HOME (pr)
+        if: ${{ github.event.issue.pull_request != null }}
+        working-directory: pr
+        run: |
+          export CODEX_HOME="$PWD/.codexhome"
+          mkdir -p "$CODEX_HOME"
+          test -n "$CODEXCLI_S3_BUCKET" && aws s3 sync "s3://$CODEXCLI_S3_BUCKET/${{ github.repository }}/prs/${{ github.event.issue.number }}/" "$CODEX_HOME" --exclude auth.json || :
+          printf '%s' "$CODEX_AUTH_JSON" > "$CODEX_HOME/auth.json"
+
+      - name: Find session id (pr)
+        if: ${{ github.event.issue.pull_request != null }}
+        working-directory: pr
+        run: |
+          export CODEX_HOME="$PWD/.codexhome"
+          CODEX_SESSION_ID="$(uv run ../scripts/codex_find_session_id.py "$CODEX_HOME")"
+          echo "CODEX_SESSION_ID=$CODEX_SESSION_ID" >> "$GITHUB_ENV"
 
       - name: Run codexcli main (pr)
         if: ${{ github.event.issue.pull_request != null }}
         working-directory: pr
         env:
+          CODEX_HOME: ${{ github.workspace }}/pr/.codexhome
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           EVENT_PATH: ${{ github.event_path }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: uv run ../scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL"
+        run: uv run ../scripts/codexcli_main.py "$GH_TOKEN" "$REPO" "$EVENT_PATH" "$RUN_URL" "$CODEX_HOME" "$CODEX_SESSION_ID"
+
+      - name: Update session id (pr)
+        if: ${{ github.event.issue.pull_request != null }}
+        working-directory: pr
+        run: |
+          export CODEX_HOME="$PWD/.codexhome"
+          uv run ../scripts/codex_write_session_id.py "$CODEX_HOME"
+
+      - name: Save CODEX_HOME (pr)
+        if: ${{ github.event.issue.pull_request != null }}
+        working-directory: pr
+        run: |
+          export CODEX_HOME="$PWD/.codexhome"
+          test -n "$CODEXCLI_S3_BUCKET" && aws s3 sync "$CODEX_HOME" "s3://$CODEXCLI_S3_BUCKET/${{ github.repository }}/prs/${{ github.event.issue.number }}/" --exclude auth.json || :

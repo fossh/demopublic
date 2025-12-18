@@ -6,6 +6,7 @@ MUST HAVE REQUIREMENTS
 - For PR comments: run Codex CLI, optionally push commits back.
 - For issue comments: run Codex CLI, optionally open a PR with changes.
 - No environment variable reads; use argv only.
+- Resume prior Codex session when a session id is provided.
 """
 
 from json import load
@@ -21,6 +22,8 @@ token = argv[1]
 repo = argv[2]
 event_path = argv[3]
 run_url = argv[4]
+codex_home = argv[5]
+session_id = argv[6].strip()
 h = {"Authorization": "token " + token}
 api = "https://api.github.com/repos/" + repo
 
@@ -43,16 +46,12 @@ request_text = text[9:] or "Help with this repository."
 # ----------------------------------
 # Run Codex CLI for the user request
 # ----------------------------------
-last = "/tmp/codexcli_last_message.txt"
-run(
-    ["codex", "-a", "never", "exec", "-s", "workspace-write", "--color", "never", "-o", last, "-"],
-    input=request_text,
-    text=True,
-)
-try:
-    msg = open(last, "r", encoding="utf-8").read()
-except FileNotFoundError:
-    msg = "codexcli ran."
+cmd = ["codex", "-a", "never", "-s", "workspace-write", "exec"]
+if session_id:
+    cmd += ["resume", session_id]
+cmd += ["-"]
+cp = run(cmd, input=request_text, text=True, capture_output=True)
+msg = cp.stdout or cp.stderr or "codexcli ran."
 
 # ----------------------------------
 # If Codex changed files, commit + push (PR) or open PR (issue)
@@ -97,7 +96,8 @@ requests.post(
     headers=h,
     json={
         "body": (
-            (("PR: " + pr_link + "\n\n") if pr_link else "")
+            "session: " + (session_id or "new") + "\n\n"
+            + (("PR: " + pr_link + "\n\n") if pr_link else "")
             + msg[:60000]
             + "\n\nRun: "
             + run_url
