@@ -11,14 +11,14 @@ from os.path import exists
 from subprocess import run
 from sys import argv
 
-b = argv[1]
-work = argv[2]
-if not exists(b + "/changed"):
+bundle_dir = argv[1]
+work_dir = argv[2]
+if not exists(bundle_dir + "/changed"):
     raise SystemExit
 
-m = load(open(b + "/manifest.json", "rb"))
-e = load(open(b + "/event.json", "rb"))
-n = str(m["number"])
-branch = "codex-v2/issue-%s-%s" % (n, e["comment"]["id"])
-run(["git", "push", "origin", "HEAD:refs/heads/%s" % branch], cwd=work, check=False)
-open(b + "/branch", "w", encoding="utf-8").write(branch)
+manifest = load(open(bundle_dir + "/manifest.json", "rb"))
+event_payload = load(open(bundle_dir + "/event.json", "rb"))
+issue_number = str(manifest["number"])
+branch_name = "codex-v2/issue-%s-%s" % (issue_number, event_payload["comment"]["id"])
+run(["git", "push", "origin", "HEAD:refs/heads/%s" % branch_name], cwd=work_dir, check=False)
+open(bundle_dir + "/branch", "w", encoding="utf-8").write(branch_name)

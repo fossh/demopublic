@@ -27,7 +27,7 @@ github_token = argv[9]
 codex_auth_json_path = argv[10]
 github_context_json_path = argv[11]
 kind = argv[12]
-number = argv[13]
+item_number = argv[13]
 
 # ----------------------------------
 # Bundle layout
@@ -50,9 +50,9 @@ dump(
         "run_id": run_id,
         "run_url": run_url,
         "kind": kind,
-        "number": int(number),
+        "number": int(item_number),
         "s3_bundle": "s3://%s/%s/v2/bundles/%s/" % (s3_bucket, repo_name, run_id),
-        "s3_codex": "s3://%s/%s/v2/%s/%s/codex_home/" % (s3_bucket, repo_name, kind, number),
+        "s3_codex": "s3://%s/%s/v2/%s/%s/codex_home/" % (s3_bucket, repo_name, kind, item_number),
         "s3_bucket": s3_bucket,
         "aws_access_key_id": aws_access_key_id,
         "aws_secret_access_key": aws_secret_access_key,

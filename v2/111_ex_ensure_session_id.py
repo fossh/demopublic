@@ -13,22 +13,22 @@ from os.path import basename, exists, getmtime
 from subprocess import DEVNULL, run
 from sys import argv
 
-h = argv[1]
-p = h + "/session_id"
-environ["CODEX_HOME"] = h
+codex_home_dir = argv[1]
+session_id_path = codex_home_dir + "/session_id"
+environ["CODEX_HOME"] = codex_home_dir
 
-if exists(p):
-    s = open(p, "r", encoding="utf-8").read().strip()
-    if s:
-        print(s)
+if exists(session_id_path):
+    session_id = open(session_id_path, "r", encoding="utf-8").read().strip()
+    if session_id:
+        print(session_id)
         raise SystemExit
 
-fs = glob(h + "/sessions/**/*.jsonl", recursive=True)
-if fs:
-    s = basename(max(fs, key=getmtime))
-    s = s[: s.rfind(".")][-36:]
-    open(p, "w", encoding="utf-8").write(s)
-    print(s)
+session_files = glob(codex_home_dir + "/sessions/**/*.jsonl", recursive=True)
+if session_files:
+    session_id = basename(max(session_files, key=getmtime))
+    session_id = session_id[: session_id.rfind(".")][-36:]
+    open(session_id_path, "w", encoding="utf-8").write(session_id)
+    print(session_id)
     raise SystemExit
 
 run(
@@ -49,9 +49,9 @@ run(
     stderr=DEVNULL,
 )
 
-fs = glob(h + "/sessions/**/*.jsonl", recursive=True)
-if fs:
-    s = basename(max(fs, key=getmtime))
-    s = s[: s.rfind(".")][-36:]
-    open(p, "w", encoding="utf-8").write(s)
-    print(s)
+session_files = glob(codex_home_dir + "/sessions/**/*.jsonl", recursive=True)
+if session_files:
+    session_id = basename(max(session_files, key=getmtime))
+    session_id = session_id[: session_id.rfind(".")][-36:]
+    open(session_id_path, "w", encoding="utf-8").write(session_id)
+    print(session_id)

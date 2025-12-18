@@ -11,19 +11,19 @@ from os import environ, makedirs
 from subprocess import run
 from sys import argv
 
-b = argv[1]
-m = load(open(b + "/manifest.json", "rb"))
+bundle_dir = argv[1]
+manifest = load(open(bundle_dir + "/manifest.json", "rb"))
 
-if m["aws_access_key_id"]:
-    environ["AWS_ACCESS_KEY_ID"] = m["aws_access_key_id"]
-if m["aws_secret_access_key"]:
-    environ["AWS_SECRET_ACCESS_KEY"] = m["aws_secret_access_key"]
-if m["aws_region"]:
-    environ["AWS_DEFAULT_REGION"] = m["aws_region"]
+if manifest["aws_access_key_id"]:
+    environ["AWS_ACCESS_KEY_ID"] = manifest["aws_access_key_id"]
+if manifest["aws_secret_access_key"]:
+    environ["AWS_SECRET_ACCESS_KEY"] = manifest["aws_secret_access_key"]
+if manifest["aws_region"]:
+    environ["AWS_DEFAULT_REGION"] = manifest["aws_region"]
 
-h = b + "/codex_home"
-environ["CODEX_HOME"] = h
-makedirs(h, exist_ok=True)
-open(h + "/auth.json", "wb").write(open(b + "/codex_auth.json", "rb").read())
-if m["s3_bucket"]:
-    run(["aws", "s3", "sync", m["s3_codex"], h, "--exclude", "auth.json"], check=False)
+codex_home_dir = bundle_dir + "/codex_home"
+environ["CODEX_HOME"] = codex_home_dir
+makedirs(codex_home_dir, exist_ok=True)
+open(codex_home_dir + "/auth.json", "wb").write(open(bundle_dir + "/codex_auth.json", "rb").read())
+if manifest["s3_bucket"]:
+    run(["aws", "s3", "sync", manifest["s3_codex"], codex_home_dir, "--exclude", "auth.json"], check=False)

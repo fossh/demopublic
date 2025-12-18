@@ -11,15 +11,15 @@ from os import environ
 from subprocess import run
 from sys import argv
 
-b = argv[1]
-m = load(open(b + "/manifest.json", "rb"))
+bundle_dir = argv[1]
+manifest = load(open(bundle_dir + "/manifest.json", "rb"))
 
-if m["aws_access_key_id"]:
-    environ["AWS_ACCESS_KEY_ID"] = m["aws_access_key_id"]
-if m["aws_secret_access_key"]:
-    environ["AWS_SECRET_ACCESS_KEY"] = m["aws_secret_access_key"]
-if m["aws_region"]:
-    environ["AWS_DEFAULT_REGION"] = m["aws_region"]
+if manifest["aws_access_key_id"]:
+    environ["AWS_ACCESS_KEY_ID"] = manifest["aws_access_key_id"]
+if manifest["aws_secret_access_key"]:
+    environ["AWS_SECRET_ACCESS_KEY"] = manifest["aws_secret_access_key"]
+if manifest["aws_region"]:
+    environ["AWS_DEFAULT_REGION"] = manifest["aws_region"]
 
-if m["s3_bucket"]:
-    run(["aws", "s3", "sync", b + "/codex_home", m["s3_codex"], "--exclude", "auth.json"], check=False)
+if manifest["s3_bucket"]:
+    run(["aws", "s3", "sync", bundle_dir + "/codex_home", manifest["s3_codex"], "--exclude", "auth.json"], check=False)

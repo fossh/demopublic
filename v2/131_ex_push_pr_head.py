@@ -12,21 +12,21 @@ from subprocess import run
 from sys import argv
 from urllib.request import Request, urlopen
 
-b = argv[1]
-work = argv[2]
-if not exists(b + "/changed"):
+bundle_dir = argv[1]
+work_dir = argv[2]
+if not exists(bundle_dir + "/changed"):
     raise SystemExit
 
-m = load(open(b + "/manifest.json", "rb"))
-e = load(open(b + "/event.json", "rb"))
-u = e["issue"]["pull_request"]["url"]
+manifest = load(open(bundle_dir + "/manifest.json", "rb"))
+event_payload = load(open(bundle_dir + "/event.json", "rb"))
+pr_url = event_payload["issue"]["pull_request"]["url"]
 
-req = Request(u)
-req.add_header("Authorization", "Bearer " + m["github_token"])
+request = Request(pr_url)
+request.add_header("Authorization", "Bearer " + manifest["github_token"])
 try:
-    pr = load(urlopen(req))
+    pr = load(urlopen(request))
 except Exception:
     pr = {}
 
-if pr.get("head", {}).get("repo", {}).get("full_name") == m["repo"]:
-    run(["git", "push", "origin", "HEAD:refs/heads/%s" % pr["head"]["ref"]], cwd=work, check=False)
+if pr.get("head", {}).get("repo", {}).get("full_name") == manifest["repo"]:
+    run(["git", "push", "origin", "HEAD:refs/heads/%s" % pr["head"]["ref"]], cwd=work_dir, check=False)
