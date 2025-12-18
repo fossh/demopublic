@@ -75,7 +75,7 @@ if changed:
         if pr["head"]["repo"]["full_name"] == repo:
             run(["git", "push", "origin", f"HEAD:refs/heads/{pr['head']['ref']}"])
     else:
-        branch = f"codexcli/issue-{issue_number}"
+        branch = "codexcli/issue-%s-%s" % (issue_number, event["comment"]["id"])
         run(["git", "push", "origin", f"HEAD:refs/heads/{branch}"])
         pr_link = requests.post(
             api + "/pulls",
