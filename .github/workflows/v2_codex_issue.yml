@@ -45,7 +45,7 @@ jobs:
 
       - name: Capture (no sleep)
         run: |
-          python3 v2/capture.py \
+          python3 v2/cap_make_bundle.py \
             '${{ github.repository }}' \
             "$GITHUB_WORKSPACE/tmp/event.json" \
             '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
@@ -58,13 +58,40 @@ jobs:
             "$GITHUB_WORKSPACE/tmp/codex_auth.json" \
             "$GITHUB_WORKSPACE/tmp/github_context.json" \
             issues \
-            '${{ github.event.issue.number }}' \
-            0
+            '${{ github.event.issue.number }}'
+          python3 v2/cap_upload_bundle_s3.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
+          python3 v2/cap_comment_bundle.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
 
-      - name: Execute
+      - name: Restore Codex home
         run: |
-          python3 v2/execute.py \
-            "/tmp/codex-v2-bundle-${{ github.run_id }}" \
-            "$GITHUB_WORKSPACE" \
-            '@openai/codex@0.73.0'
+          python3 v2/ex_restore_codex_home.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
 
+      - name: Checkout repo
+        run: python3 v2/ex_checkout_repo.py "/tmp/codex-v2-bundle-${{ github.run_id }}" "$GITHUB_WORKSPACE"
+
+      - name: Install Codex CLI (npm)
+        run: python3 v2/ex_install_codex_cli.py '@openai/codex@0.73.0'
+
+      - name: Session guard
+        run: python3 v2/ex_assert_single_session.py "/tmp/codex-v2-bundle-${{ github.run_id }}/codex_home"
+
+      - name: Ensure session id
+        run: python3 v2/ex_ensure_session_id.py "/tmp/codex-v2-bundle-${{ github.run_id }}/codex_home"
+
+      - name: Run Codex
+        run: python3 v2/ex_run_codex.py "/tmp/codex-v2-bundle-${{ github.run_id }}" "$GITHUB_WORKSPACE"
+
+      - name: Commit changes (if any)
+        run: python3 v2/ex_commit_if_changed.py "/tmp/codex-v2-bundle-${{ github.run_id }}" "$GITHUB_WORKSPACE" "codex-v2"
+
+      - name: Push issue branch (if changed)
+        run: python3 v2/ex_push_issue_branch.py "/tmp/codex-v2-bundle-${{ github.run_id }}" "$GITHUB_WORKSPACE"
+
+      - name: Open PR (if changed)
+        run: python3 v2/ex_open_pr_for_issue.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
+
+      - name: Comment result
+        run: python3 v2/ex_comment_result.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
+
+      - name: Persist Codex home
+        run: python3 v2/ex_persist_codex_home.py "/tmp/codex-v2-bundle-${{ github.run_id }}"

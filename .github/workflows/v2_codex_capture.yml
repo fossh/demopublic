@@ -39,7 +39,7 @@ jobs:
 
       - name: Capture bundle to S3
         run: |
-          python3 v2/capture.py \
+          python3 v2/cap_make_bundle.py \
             '${{ github.repository }}' \
             "$GITHUB_WORKSPACE/tmp/event.json" \
             '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
@@ -52,6 +52,7 @@ jobs:
             "$GITHUB_WORKSPACE/tmp/codex_auth.json" \
             "$GITHUB_WORKSPACE/tmp/github_context.json" \
             "${{ github.event.issue.pull_request != null && 'prs' || 'issues' }}" \
-            '${{ github.event.issue.number }}' \
-            36000
-
+            '${{ github.event.issue.number }}'
+          python3 v2/cap_upload_bundle_s3.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
+          python3 v2/cap_comment_bundle.py "/tmp/codex-v2-bundle-${{ github.run_id }}"
+          python3 v2/cap_sleep.py 36000
