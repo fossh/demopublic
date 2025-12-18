@@ -41,7 +41,8 @@ prompt = (
     request_text if request_text else "Review this PR and call out the most important issues."
 )
 
-review = run(["codex", "review", "-"], input=prompt, text=True, capture_output=True).stdout
+cp = run(["codex", "review", "-"], input=prompt, text=True, capture_output=True)
+review = cp.stdout or cp.stderr
 
 requests.post(
     f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments",
