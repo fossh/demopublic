@@ -21,7 +21,7 @@ token = argv[1]
 repo = argv[2]
 event_path = argv[3]
 run_url = argv[4]
-h = {"Authorization": "Bearer " + token}
+h = {"Authorization": "token " + token}
 api = "https://api.github.com/repos/" + repo
 
 # ----------------------------------
