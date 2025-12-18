@@ -37,4 +37,4 @@ Measured with `python3 /home/ubuntu/codexd/count_bytecode.py <script>`.
 - `v2/133_ex_open_pr_for_issue.py`: 199
 - `v2/140_ex_comment_result.py`: 190
 - `v2/150_ex_persist_codex_home.py`: 96
-- `v2/199_ex_run_all.py`: 220
+- `v2/199_ex_run_all.py`: 219
